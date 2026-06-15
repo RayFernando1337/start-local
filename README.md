@@ -4,7 +4,7 @@ A beginner-first guide for running local LLMs with `llama.cpp` on consumer hardw
 
 The site is intentionally conservative: pick a model by VRAM, run one stable command, verify the local server, then decide whether advanced features like MTP, huge context, vision, or multi-GPU are worth adding.
 
-Live site: Vercel deployment pending.
+Live site: https://start-local-llm.vercel.app
 
 ## Why this exists
 
