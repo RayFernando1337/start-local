@@ -5,11 +5,12 @@ const viewports = [
   { name: "mobile430", width: 430, height: 932 },
   { name: "desktop", width: 1440, height: 1000 },
 ];
+const baseUrl = process.env.BASE_URL || "http://127.0.0.1:4173";
 
 for (const viewport of viewports) {
   test(`${viewport.name} layout and navigation`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto("http://127.0.0.1:4173", { waitUntil: "networkidle" });
+    await page.goto(baseUrl, { waitUntil: "networkidle" });
 
     await expect(page).toHaveTitle(/Start Local/);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
@@ -33,7 +34,7 @@ for (const viewport of viewports) {
 
 test("platform toggle updates command blocks", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("http://127.0.0.1:4173", { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "networkidle" });
 
   await page.locator('[data-platform-choice="mac"]').click();
   await expect(page.locator("#main-command")).toContainText("~/Models");
