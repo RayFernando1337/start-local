@@ -160,6 +160,13 @@
       margin-bottom: 30px;
     }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .project-note {
+      margin-top: 16px;
+      color: var(--faint);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .project-note a { color: var(--muted); }
 
     .button {
       border: 1px solid var(--ink);
@@ -437,6 +444,8 @@
       color: var(--muted);
       font-size: 14px;
     }
+    footer p { margin: 0 0 10px; max-width: 80ch; }
+    footer p:last-child { margin-bottom: 0; }
 
     /* Floating contents control: orientation that never relies on a sticky bar */
     .toc-fab {
@@ -657,8 +666,10 @@
       <p class="lead">This guide turns @TraffAlex's local LLM model post into a beginner-first setup path: pick by VRAM, run one stable command, prove the server works, then decide whether MTP, huge context, vision, or multi-GPU is worth touching.</p>
       <div class="hero-actions">
         <a class="button" href="#start">Pick my model</a>
+        <a class="button secondary" href="https://github.com/RayFernando1337/start-local" target="_blank" rel="noreferrer">Contribute on GitHub</a>
         <a class="button secondary" href="https://x.com/traffalex/status/2066236717015728227" target="_blank" rel="noreferrer">Source post</a>
       </div>
+      <p class="project-note">Built by <a href="https://x.com/rayfernando1337" target="_blank" rel="noreferrer">Ray Fernando</a>. Open source on <a href="https://github.com/RayFernando1337/start-local" target="_blank" rel="noreferrer">GitHub</a>.</p>
     </div>
 
     <section id="start">
@@ -959,6 +970,8 @@ set OPENAI_BASE_URL=http://localhost:8080/v1</pre>
           </div>
         </div>
         <ol class="source-list">
+          <li><a href="https://github.com/RayFernando1337/start-local" target="_blank" rel="noreferrer">Start Local GitHub repo</a></li>
+          <li><a href="https://x.com/rayfernando1337" target="_blank" rel="noreferrer">Ray Fernando on X</a></li>
           <li><a href="https://x.com/traffalex/status/2066236717015728227" target="_blank" rel="noreferrer">@TraffAlex source post</a></li>
           <li><a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9637" target="_blank" rel="noreferrer">llama.cpp release b9637</a></li>
           <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md" target="_blank" rel="noreferrer">llama.cpp install docs</a></li>
@@ -978,8 +991,9 @@ set OPENAI_BASE_URL=http://localhost:8080/v1</pre>
 
   <footer>
     <div class="shell">
-      Built as a beginner-first synthesis for June 2026. The practical rule: make one boring local chat work before chasing benchmark screenshots.
-      Independent community synthesis. Not affiliated with or endorsed by @TraffAlex, the model authors, or the llama.cpp project. Verify commands against official docs before running.
+      <p>Built by <a href="https://x.com/rayfernando1337" target="_blank" rel="noreferrer">Ray Fernando</a> as a beginner-first synthesis for June 2026. The practical rule: make one boring local chat work before chasing benchmark screenshots.</p>
+      <p>Open source on <a href="https://github.com/RayFernando1337/start-local" target="_blank" rel="noreferrer">GitHub</a>. Contributions, corrections, and source-backed updates are welcome.</p>
+      <p>Independent community synthesis. Not affiliated with or endorsed by @TraffAlex, the model authors, or the llama.cpp project. Verify commands against official docs before running.</p>
     </div>
   </footer>
 
