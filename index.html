@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Start Local - Local LLM Starter Guide</title>
+  <meta name="description" content="A beginner-first local LLM guide for llama.cpp on consumer GPUs, with Mac and Windows commands, model picks by VRAM, and sources.">
+  <meta property="og:title" content="Start Local">
+  <meta property="og:description" content="Run your first local model without fighting every knob.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      /* Warm neutral base, one quiet accent, amber reserved for experimental */
+      --bg: #fbfaf7;
+      --panel: #ffffff;
+      --panel-soft: #f2f1ed;
+      --ink: #18191a;
+      --muted: #686963;
+      --faint: #9b9a92;
+      --line: #e5e2dc;
+      --line-strong: #d2cec5;
+      --accent: #687468;
+      --accent-dark: #39483f;
+      --accent-soft: #eef0eb;
+      --warn: #8a5a00;
+      --warn-soft: #fbf3df;
+      --code-bg: #151713;
+      --code-text: #e9efeb;
+      /* Two radii only */
+      --r-sm: 6px;
+      --r-md: 12px;
+      --max: 1080px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: var(--accent-dark); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+    .shell { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+    /* Header: static, scrolls away. No fixed/sticky so the Safari toolbar can't hide it. */
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+      padding-top: env(safe-area-inset-top);
+    }
+    .nav {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand {
+      font-size: 14px;
+      font-weight: 680;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+    .brand-short { display: none; }
+    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .navlinks {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .navlinks a {
+      position: relative;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      padding-bottom: 4px;
+    }
+    .navlinks a:hover { color: var(--ink); }
+    .navlinks a[aria-current="true"] { color: var(--ink); }
+    .navlinks a[aria-current="true"]::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    /* Global OS toggle: a soft segmented control, never a stark dark slab */
+    .os-toggle {
+      display: inline-flex;
+      gap: 2px;
+      padding: 3px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+    }
+    .os-toggle button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 620;
+      padding: 5px 11px;
+      min-height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .os-toggle button[aria-pressed="true"] {
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+    }
+    .os-toggle button:hover { color: var(--ink); }
+
+    main { position: relative; }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    /* Hero */
+    .shell.hero { padding: 64px 24px 44px; }
+    .eyebrow {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 24px;
+    }
+    h1 {
+      max-width: 17ch;
+      font-size: 64px;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      margin-bottom: 20px;
+      font-weight: 680;
+    }
+    .lead {
+      max-width: 60ch;
+      font-size: 21px;
+      color: var(--muted);
+      line-height: 1.42;
+      margin-bottom: 30px;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+    .button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      border-radius: var(--r-sm);
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+    .button.secondary { background: transparent; color: var(--accent-dark); border-color: var(--line-strong); }
+    .button:hover { color: #fff; background: var(--accent-dark); border-color: var(--accent-dark); }
+    .button.secondary:hover { color: var(--ink); background: var(--panel-soft); border-color: var(--line-strong); }
+
+    /* Generous section pauses */
+    section { padding: 60px 0; scroll-margin-top: 24px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.4fr);
+      gap: 28px;
+      align-items: baseline;
+      margin-bottom: 28px;
+    }
+    h2 {
+      font-size: 38px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      font-weight: 680;
+    }
+    .section-note { color: var(--muted); margin-bottom: 0; max-width: 58ch; }
+    /* The right-column note: a quiet caption, not a bordered pill */
+    .section-head .pill {
+      justify-self: end;
+      text-align: right;
+      color: var(--faint);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 30ch;
+    }
+
+    /* Inline code gets a subtle ground for hierarchy */
+    :not(pre) > code {
+      background: var(--panel-soft);
+      padding: 1px 5px;
+      border-radius: var(--r-sm);
+      font-size: 0.88em;
+      color: var(--ink);
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+
+    /* Chooser: a single container, no nested card outlines */
+    .chooser {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 24px;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      background: var(--panel-soft);
+      border-radius: var(--r-sm);
+      margin-bottom: 24px;
+    }
+    .segmented button {
+      min-height: 44px;
+      border: 0;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .segmented button[aria-selected="true"] {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    .platform-help {
+      margin: 0 0 18px;
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .choice-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 0.62fr);
+      gap: 28px;
+    }
+    .choice-grid > *,
+    .split > *,
+    .steps > *,
+    .model-grid > *,
+    .trouble-grid > *,
+    .glossary-grid > * {
+      min-width: 0;
+    }
+    .result { min-width: 0; }
+    .result h3 {
+      font-size: 22px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .result > p { color: var(--muted); }
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin: 16px 0 0;
+    }
+    .result-meta .pill {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    /* "What to do next": hairline-separated list, no boxes */
+    .aside-list { display: grid; min-width: 0; }
+    .aside-item { padding: 16px 0; border-top: 1px solid var(--line); }
+    .aside-item:first-child { padding-top: 0; border-top: 0; }
+    .aside-item strong { display: block; margin-bottom: 4px; font-weight: 640; }
+    .aside-item span { color: var(--muted); font-size: 14px; }
+
+    /* Steps: editorial numerals instead of circles + card outlines */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px;
+      counter-reset: step;
+    }
+    .step { counter-increment: step; }
+    .step:before {
+      content: counter(step, decimal-leading-zero);
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .step h3 { font-size: 18px; margin-bottom: 8px; font-weight: 640; }
+    .step p { color: var(--muted); margin-bottom: 0; }
+
+    /* Code block: dark ground carries the contrast, no extra border */
+    .command-wrap {
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: var(--code-bg);
+      margin-top: 18px;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .codebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #aeb6b0;
+      font-size: 13px;
+    }
+    .copy {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #f3f6f4;
+      background: transparent;
+      border-radius: var(--r-sm);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      min-height: 32px;
+    }
+    .copy:hover { background: rgba(255, 255, 255, 0.08); }
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      color: var(--code-text);
+      font: 13px/1.6 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      white-space: pre;
+    }
+
+    /* Card grids as unified spec sheets: one frame, hairline dividers */
+    .model-grid, .trouble-grid, .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    .card {
+      background: var(--panel);
+      padding: 22px;
+      min-width: 0;
+    }
+    .card h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+      line-height: 1.25;
+      font-weight: 640;
+    }
+    .card p { color: var(--muted); margin-bottom: 12px; }
+    .card a { font-size: 14px; }
+    .card .tagline {
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .card.warning { background: var(--warn-soft); }
+    .card.warning .tagline { color: var(--warn); }
+
+    /* Two-up panels */
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.5fr);
+      gap: 22px;
+      align-items: start;
+    }
+    .plain-panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--r-md);
+      padding: 24px;
+    }
+    .plain-panel h3 { font-size: 18px; margin-bottom: 12px; font-weight: 640; }
+    .plain-panel ul, .card ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .plain-panel li, .card li { margin: 8px 0; }
+    details {
+      border-top: 1px solid var(--line);
+      padding: 14px 0;
+    }
+    details:first-of-type { border-top: 0; padding-top: 0; }
+    summary {
+      cursor: pointer;
+      font-weight: 620;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary:after { content: "+"; color: var(--faint); font-weight: 500; font-size: 20px; line-height: 1; }
+    details[open] summary:after { content: "\2013"; }
+    details p { color: var(--muted); margin: 10px 0 0; max-width: 72ch; }
+
+    .source-list {
+      columns: 2;
+      column-gap: 32px;
+      color: var(--muted);
+      font-size: 14px;
+      padding-left: 18px;
+    }
+    .source-list li { break-inside: avoid; margin: 0 0 10px; }
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 40px 0 calc(48px + env(safe-area-inset-bottom));
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Floating contents control: orientation that never relies on a sticky bar */
+    .toc-fab {
+      position: fixed;
+      right: calc(16px + env(safe-area-inset-right));
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      z-index: 1200;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 16px;
+      min-height: 46px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-md);
+      background: rgba(251, 250, 247, 0.92);
+      -webkit-backdrop-filter: saturate(1.5) blur(14px);
+      backdrop-filter: saturate(1.5) blur(14px);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      box-shadow: 0 8px 30px rgba(20, 22, 18, 0.16);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+    }
+    .toc-fab.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+    }
+    .toc-fab:hover { border-color: var(--accent); }
+    .toc-fab svg { width: 15px; height: 15px; flex: none; }
+    .toc-fab .toc-current { color: var(--ink); font-weight: 640; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .toc-fab .toc-sep { color: var(--line-strong); }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1300;
+      background: rgba(18, 22, 20, 0.30);
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s ease, visibility 0.18s ease;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) 16px;
+    }
+    .toc-overlay.open { opacity: 1; visibility: visible; }
+    .toc-panel {
+      width: min(330px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      box-shadow: 0 22px 60px rgba(20, 30, 24, 0.24);
+      padding: 8px;
+      transform: translateY(10px);
+      transition: transform 0.18s ease;
+    }
+    .toc-overlay.open .toc-panel { transform: none; }
+    .toc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 8px;
+    }
+    .toc-head h2 {
+      font-size: 12px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin: 0;
+      font-weight: 700;
+    }
+    .toc-close {
+      border: 0;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--r-sm);
+    }
+    .toc-close:hover { background: var(--panel-soft); color: var(--ink); }
+    .toc-panel nav { display: grid; }
+    .toc-panel a {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: var(--r-sm);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 15px;
+    }
+    .toc-panel a:hover { background: var(--panel-soft); }
+    .toc-panel a .toc-num { color: var(--faint); font-size: 12px; font-weight: 700; min-width: 18px; }
+    .toc-panel a[aria-current="true"] { color: var(--accent-dark); font-weight: 640; background: var(--accent-soft); }
+    .toc-panel a[aria-current="true"] .toc-num { color: var(--accent-dark); }
+
+    .chapter-rail {
+      position: fixed;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: none;
+      width: 136px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .chapter-rail .rail-title {
+      display: block;
+      color: var(--faint);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .chapter-rail a {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 8px;
+      align-items: baseline;
+      padding: 7px 10px;
+      margin: 0 -10px;
+      border-left: 2px solid transparent;
+      border-radius: var(--r-sm);
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .chapter-rail a:hover { color: var(--ink); }
+    .chapter-rail .rail-num {
+      color: var(--faint);
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .chapter-rail a[aria-current="true"] {
+      color: var(--ink);
+      font-weight: 640;
+      background: var(--accent-soft);
+      border-left-color: var(--accent);
+    }
+    .chapter-rail a[aria-current="true"] .rail-num { color: var(--accent-dark); }
+
+    @media (min-width: 1320px) {
+      .chapter-rail { display: block; }
+      .toc-fab { display: none; }
+    }
+
+    @media (max-width: 860px) {
+      .section-head, .choice-grid, .split { grid-template-columns: 1fr; }
+      .section-head .pill { justify-self: start; text-align: left; max-width: none; }
+      .steps, .model-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .trouble-grid, .glossary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .source-list { columns: 1; }
+    }
+    @media (max-width: 680px) {
+      .shell { padding: 0 18px; }
+      .navlinks { display: none; }
+      .brand-full { display: none; }
+      .brand-short { display: inline; }
+      .shell.hero { padding: 40px 18px 32px; }
+      h1 { font-size: 38px; line-height: 1.04; letter-spacing: -0.018em; }
+      h2 { font-size: 30px; line-height: 1.12; }
+      .lead { font-size: 18px; line-height: 1.45; }
+      section { padding: 44px 0; }
+      .steps, .model-grid, .trouble-grid, .glossary-grid { grid-template-columns: 1fr; }
+      .chooser { padding: 16px; }
+      .segmented button { font-size: 12px; padding: 0 2px; }
+      pre { font-size: 12px; }
+      .hero-actions .button { width: 100%; justify-content: center; }
+      .toc-fab {
+        left: calc(18px + env(safe-area-inset-left));
+        right: calc(18px + env(safe-area-inset-right));
+        bottom: calc(14px + env(safe-area-inset-bottom));
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell nav">
+      <div class="brand"><span class="brand-full">Start Local</span><span class="brand-short">Start Local</span></div>
+      <div class="nav-right">
+        <nav class="navlinks" aria-label="Page sections">
+          <a href="#start">Start</a>
+          <a href="#setup">Setup</a>
+          <a href="#models">Models</a>
+          <a href="#troubleshooting">Fixes</a>
+          <a href="#glossary">Glossary</a>
+        </nav>
+        <div class="os-toggle" role="group" aria-label="Command platform">
+          <button type="button" data-platform-choice="windows" aria-pressed="true">Windows</button>
+          <button type="button" data-platform-choice="mac" aria-pressed="false">Mac</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="shell hero">
+      <div class="eyebrow">June 2026 <span aria-hidden="true">&middot;</span> llama.cpp on consumer GPUs</div>
+      <h1>Run your first local model without fighting every knob.</h1>
+      <p class="lead">This guide turns @TraffAlex's local LLM model post into a beginner-first setup path: pick by VRAM, run one stable command, prove the server works, then decide whether MTP, huge context, vision, or multi-GPU is worth touching.</p>
+      <div class="hero-actions">
+        <a class="button" href="#start">Pick my model</a>
+        <a class="button secondary" href="https://x.com/traffalex/status/2066236717015728227" target="_blank" rel="noreferrer">Source post</a>
+      </div>
+    </div>
+
+    <section id="start">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Start with the answer.</h2>
+            <p class="section-note">Choose your GPU memory. The first command stays deliberately boring: no MTP, no vision projector, no 180K context, no multi-GPU split.</p>
+          </div>
+          <span class="pill">Recommended first run: stable model, 8K context, one GPU</span>
+        </div>
+
+        <div class="chooser" aria-label="VRAM model chooser">
+          <p class="platform-help" id="platform-help">Commands follow the platform switch in the top bar. Change it if this phone is only your setup screen.</p>
+          <div class="segmented" role="tablist" aria-label="VRAM choices">
+            <button type="button" role="tab" aria-selected="true" data-tier="8">8GB</button>
+            <button type="button" role="tab" aria-selected="false" data-tier="12">12GB</button>
+            <button type="button" role="tab" aria-selected="false" data-tier="16">16GB</button>
+            <button type="button" role="tab" aria-selected="false" data-tier="24">24GB</button>
+            <button type="button" role="tab" aria-selected="false" data-tier="32">32GB+</button>
+          </div>
+
+          <div class="choice-grid">
+            <article class="result" aria-live="polite">
+              <h3 id="choice-title">8GB: LiquidAI LFM2.5-8B-A1B</h3>
+              <p id="choice-copy">The easiest 8GB start is a small official GGUF. It leaves room for the runtime, KV cache, and mistakes.</p>
+              <div class="result-meta">
+                <span class="pill" id="choice-quant">Quant: Q4_K_M</span>
+                <span class="pill" id="choice-context">Start context: 4096</span>
+                <span class="pill" id="choice-status">Beginner-stable</span>
+              </div>
+              <div class="command-wrap">
+                <div class="codebar">
+                  <span id="command-label">Windows PowerShell</span>
+                  <button class="copy" type="button" data-copy="#main-command">Copy</button>
+                </div>
+                <pre id="main-command">.\llama-server.exe `
+  -m C:\models\LFM2.5-8B-A1B-Q4_K_M.gguf `
+  --ctx-size 4096 `
+  -ngl auto `
+  --flash-attn auto `
+  --cache-type-k q8_0 `
+  --cache-type-v q8_0 `
+  --jinja `
+  --port 8080</pre>
+              </div>
+            </article>
+
+            <aside class="aside-list" aria-label="What to do next">
+              <div class="aside-item">
+                <strong>1. Install llama.cpp.</strong>
+                <span id="install-note">On Windows, start with <code>winget install llama.cpp</code>. Manual install works too, but beginners often download the wrong zip.</span>
+              </div>
+              <div class="aside-item">
+                <strong id="model-path-title">2. Put the model in <code>C:\models</code>.</strong>
+                <span id="model-path-note">Short paths avoid quoting problems. Rename the file to something simple after download.</span>
+              </div>
+              <div class="aside-item">
+                <strong>3. Open <code>http://localhost:8080</code>.</strong>
+                <span>If the chat opens and answers once, the hard part is done.</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="setup">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>The clean first setup.</h2>
+            <p class="section-note" id="setup-platform-note">Windows-first, because that is where the most beginner friction lives. Mac notes are one switch away.</p>
+          </div>
+          <span class="pill">Checked against llama.cpp b9637, June 2026</span>
+        </div>
+
+        <div class="steps">
+          <article class="step">
+            <h3>Install the runner</h3>
+            <p id="install-step">Run <code>winget install llama.cpp</code>. If you download manually, NVIDIA users want the Windows CUDA zip plus the matching CUDA runtime DLL zip from the same release.</p>
+          </article>
+          <article class="step">
+            <h3>Download one GGUF</h3>
+            <p>Pick one model from the selector. Start with Q4 or Q3 on smaller GPUs. Do not start by downloading every quant.</p>
+          </article>
+          <article class="step">
+            <h3>Run the server</h3>
+            <p>Use the generated command. Then open <code>http://localhost:8080</code>. The OpenAI-style endpoint is <code>http://localhost:8080/v1</code>.</p>
+          </article>
+        </div>
+
+        <div class="split" style="margin-top: 28px;">
+          <div class="plain-panel">
+            <h3>Sanity checks before anything advanced</h3>
+            <ul>
+              <li id="shell-check">Run from PowerShell, not by double-clicking the exe.</li>
+              <li id="device-check">Use <code>.\llama-server.exe --list-devices</code> to verify your GPU is visible.</li>
+              <li>Keep context at <code>4096</code> or <code>8192</code> for the first run.</li>
+              <li>Make one request in the built-in web UI before connecting Cursor, Continue, aider, or another client.</li>
+              <li>If you use an OpenAI-compatible client, set base URL to <code>http://localhost:8080/v1</code> and use any non-empty API key.</li>
+            </ul>
+          </div>
+          <div class="plain-panel">
+            <h3>Do not touch these yet</h3>
+            <ul>
+              <li><code>--ctx-size 180000</code>: huge context eats VRAM fast.</li>
+              <li><code>--spec-type draft-mtp</code>: only for MTP models after baseline works.</li>
+              <li><code>--tensor-split</code>: multi-GPU tuning is not a first-run task.</li>
+              <li><code>--mmproj</code>: vision requires a matching projector file.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Model choices, without the noise.</h2>
+            <p class="section-note">The X post is useful, but a beginner guide should not treat every exciting model as a default. Stable first. Experiments second.</p>
+          </div>
+          <span class="pill">Cross-checked against source/model pages; tiers re-balanced for beginners</span>
+        </div>
+
+        <div class="model-grid">
+          <article class="card">
+            <div class="tagline">8GB</div>
+            <h3>LFM2.5-8B-A1B</h3>
+            <p>Official LiquidAI GGUF. Good first choice when VRAM is tight.</p>
+            <a href="https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF" target="_blank" rel="noreferrer">Model page</a>
+          </article>
+          <article class="card">
+            <div class="tagline">12GB</div>
+            <h3>Gemma 4-12B QAT</h3>
+            <p>Source-backed, capable, and still reasonable for consumer cards.</p>
+            <a href="https://huggingface.co/google/gemma-4-12B-it-qat-q4_0-gguf" target="_blank" rel="noreferrer">Google QAT GGUF</a>
+          </article>
+          <article class="card">
+            <div class="tagline">16GB</div>
+            <h3>Qwen3.6-27B Q3</h3>
+            <p>Stronger model. Start non-MTP, lower context, then climb.</p>
+            <a href="https://huggingface.co/unsloth/Qwen3.6-27B-GGUF" target="_blank" rel="noreferrer">Unsloth GGUF</a>
+          </article>
+          <article class="card">
+            <div class="tagline">24GB</div>
+            <h3>Gemma 4-31B QAT</h3>
+            <p>Official high-VRAM pick. Better default than chasing third-party leaderboards.</p>
+            <a href="https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf" target="_blank" rel="noreferrer">Google QAT GGUF</a>
+          </article>
+          <article class="card">
+            <div class="tagline">32GB+</div>
+            <h3>Qwen3.6-27B Q8</h3>
+            <p>Use the extra memory for higher quant and context after the basic server works.</p>
+            <a href="https://huggingface.co/unsloth/Qwen3.6-27B-GGUF" target="_blank" rel="noreferrer">GGUF builds</a>
+          </article>
+          <article class="card warning">
+            <div class="tagline">Advanced</div>
+            <h3>Qwopus and Nex-N2-mini</h3>
+            <p>Real repos, interesting claims, but better treated as community/experimental options for first-time users.</p>
+            <a href="https://huggingface.co/Jackrong/Qwopus3.6-27B-v2" target="_blank" rel="noreferrer">Qwopus</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="clients">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>The useful part: one local endpoint.</h2>
+            <p class="section-note">Once <code>llama-server</code> is running, many tools can talk to it like an OpenAI-compatible server. The docs caveat that it is not a perfect clone of every OpenAI behavior, but the common chat endpoint is the point.</p>
+          </div>
+          <span class="pill">Local URL: http://localhost:8080/v1</span>
+        </div>
+
+        <div class="command-wrap">
+          <div class="codebar">
+            <span>Client environment</span>
+            <button class="copy" type="button" data-copy="#client-command">Copy</button>
+          </div>
+          <pre id="client-command">set OPENAI_API_KEY=sk-no-key-required
+set OPENAI_BASE_URL=http://localhost:8080/v1</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="troubleshooting">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Fix the symptom, not the flag.</h2>
+            <p class="section-note">Most failures are not mysterious. They are bad assets, invisible CPU fallback, too much context, or a model/runtime mismatch.</p>
+          </div>
+          <span class="pill">Beginner rescue map</span>
+        </div>
+
+        <div class="trouble-grid">
+          <article class="card">
+            <h3>The app flashes and closes</h3>
+            <p>Run it from PowerShell. Use a short folder like <code>C:\llama</code>. If manual install, keep the matching CUDA DLL zip contents beside the exe.</p>
+          </article>
+          <article class="card">
+            <h3>GPU is idle</h3>
+            <p>You probably installed a CPU build or the GPU is not visible. Run <code>--list-devices</code>, then use a CUDA/Vulkan/HIP build and <code>-ngl auto</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Out of memory</h3>
+            <p>Lower context before changing everything else. Try <code>--ctx-size 4096</code>, smaller quant, or <code>--cache-type-k q8_0 --cache-type-v q8_0</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Generation is painfully slow</h3>
+            <p>Check the log for GPU layer offload. If layers are on CPU, speed will crater. Reduce model size and context until it fully fits.</p>
+          </article>
+          <article class="card">
+            <h3>Output is weird or repetitive</h3>
+            <p>Use an instruct/chat GGUF, keep <code>--jinja</code>, and test in the built-in web UI. Do not hand-write templates first.</p>
+          </article>
+          <article class="card">
+            <h3>Cursor or another client will not connect</h3>
+            <p>Use <code>http://localhost:8080/v1</code>, not just port 8080. Check <code>http://localhost:8080/health</code>. Any non-empty API key is usually fine unless you configured one.</p>
+          </article>
+          <article class="card">
+            <h3>MTP does nothing or errors</h3>
+            <p>Use MTP only with an MTP model. Current llama.cpp uses <code>--spec-type draft-mtp</code>, not old shorthand flags.</p>
+          </article>
+          <article class="card">
+            <h3>Vision fails</h3>
+            <p>The projector must match the text model. Keep <code>model.gguf</code> and <code>mmproj.gguf</code> from the same repo/version.</p>
+          </article>
+          <article class="card">
+            <h3>Two GPUs are confusing</h3>
+            <p>Start with one GPU. Multi-GPU split can help fit models, but it does not magically double speed. Tune after the single-GPU path works.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="advanced">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>When to graduate.</h2>
+            <p class="section-note">Advanced flags are useful after you have a working baseline and a reason to add complexity.</p>
+          </div>
+          <span class="pill">Add one complexity at a time</span>
+        </div>
+        <div class="plain-panel">
+          <details>
+            <summary>Try MTP for speed</summary>
+            <p>Only after your non-MTP command works. Use an MTP model and add <code>--spec-type draft-mtp --spec-draft-n-max 3</code>. Compare actual tokens/sec and acceptance rate.</p>
+          </details>
+          <details>
+            <summary>Increase context</summary>
+            <p>Move from 8K to 16K or 32K first. Huge 128K+ contexts are memory decisions, not defaults. KV cache grows with context and parallel slots.</p>
+          </details>
+          <details>
+            <summary>Add vision</summary>
+            <p>Download the matching <code>mmproj</code> for that exact vision model. If you do not need screenshots or image input, skip this.</p>
+          </details>
+          <details>
+            <summary>Use two GPUs</summary>
+            <p>Run <code>--list-devices</code>, then start with default layer split. Use <code>--tensor-split</code> only when you know the VRAM ratio and can test performance.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="glossary">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Plain-English glossary.</h2>
+            <p class="section-note">Enough vocabulary to avoid bad downloads and bad flags.</p>
+          </div>
+        </div>
+        <div class="glossary-grid">
+          <article class="card"><h3>GGUF</h3><p>The file format llama.cpp loads. If the model is not a <code>.gguf</code>, it is not the simple llama.cpp path.</p></article>
+          <article class="card"><h3>Quantization</h3><p>A smaller version of the model. Q4 is smaller and faster; Q8 is larger and usually better quality.</p></article>
+          <article class="card"><h3>VRAM</h3><p>Memory on your GPU. Model weights, context cache, and vision files all compete for it.</p></article>
+          <article class="card"><h3>Context</h3><p>How much text the model can keep in mind. More context costs more memory.</p></article>
+          <article class="card"><h3>KV cache</h3><p>The memory used to remember attention state while generating. It grows with context and concurrent requests.</p></article>
+          <article class="card"><h3>MTP</h3><p>Multi-token prediction. It can speed generation, but only with models that include MTP heads.</p></article>
+          <article class="card"><h3>mmproj</h3><p>The projector file needed for many vision models. It must match the model.</p></article>
+          <article class="card"><h3>OpenAI-compatible endpoint</h3><p>A local <code>/v1</code> API that many tools can use instead of a cloud API.</p></article>
+          <article class="card"><h3>GPU layers</h3><p>How much of the model runs on the GPU. More layers on GPU usually means faster output.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="sources">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Sources and caveats.</h2>
+            <p class="section-note">This page synthesizes the source post, official llama.cpp docs, model pages, and common first-run failures. Claims from community fine-tunes are labeled as community/experimental.</p>
+          </div>
+        </div>
+        <ol class="source-list">
+          <li><a href="https://x.com/traffalex/status/2066236717015728227" target="_blank" rel="noreferrer">@TraffAlex source post</a></li>
+          <li><a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9637" target="_blank" rel="noreferrer">llama.cpp release b9637</a></li>
+          <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md" target="_blank" rel="noreferrer">llama.cpp install docs</a></li>
+          <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md" target="_blank" rel="noreferrer">llama-server docs</a></li>
+          <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/speculative.md" target="_blank" rel="noreferrer">llama.cpp speculative decoding docs</a></li>
+          <li><a href="https://unsloth.ai/docs/models/mtp" target="_blank" rel="noreferrer">Unsloth MTP guide</a></li>
+          <li><a href="https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF" target="_blank" rel="noreferrer">LiquidAI LFM2.5 GGUF</a></li>
+          <li><a href="https://huggingface.co/google/gemma-4-12B-it-qat-q4_0-gguf" target="_blank" rel="noreferrer">Google Gemma 4-12B QAT GGUF</a></li>
+          <li><a href="https://huggingface.co/unsloth/Qwen3.6-27B-GGUF" target="_blank" rel="noreferrer">Qwen3.6-27B GGUF</a></li>
+          <li><a href="https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf" target="_blank" rel="noreferrer">Google Gemma 4-31B QAT GGUF</a></li>
+          <li><a href="https://huggingface.co/Jackrong/Qwopus3.6-27B-v2" target="_blank" rel="noreferrer">Qwopus community model</a></li>
+          <li><a href="https://huggingface.co/nex-agi/Nex-N2-mini" target="_blank" rel="noreferrer">Nex-N2-mini base model</a></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      Built as a beginner-first synthesis for June 2026. The practical rule: make one boring local chat work before chasing benchmark screenshots.
+      Independent community synthesis. Not affiliated with or endorsed by @TraffAlex, the model authors, or the llama.cpp project. Verify commands against official docs before running.
+    </div>
+  </footer>
+
+  <nav class="chapter-rail" aria-label="Guide chapters">
+    <span class="rail-title">Chapters</span>
+    <a href="#start"><span class="rail-num">01</span> Start</a>
+    <a href="#setup"><span class="rail-num">02</span> Setup</a>
+    <a href="#models"><span class="rail-num">03</span> Models</a>
+    <a href="#clients"><span class="rail-num">04</span> Endpoint</a>
+    <a href="#troubleshooting"><span class="rail-num">05</span> Fixes</a>
+    <a href="#advanced"><span class="rail-num">06</span> Graduate</a>
+    <a href="#glossary"><span class="rail-num">07</span> Glossary</a>
+    <a href="#sources"><span class="rail-num">08</span> Sources</a>
+  </nav>
+
+  <button class="toc-fab" id="toc-fab" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="toc-overlay">
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <span>Contents</span>
+    <span class="toc-sep" aria-hidden="true">&middot;</span>
+    <span class="toc-current" id="toc-current">Start</span>
+  </button>
+
+  <div class="toc-overlay" id="toc-overlay" role="dialog" aria-modal="true" aria-label="Contents">
+    <div class="toc-panel">
+      <div class="toc-head">
+        <h2>Contents</h2>
+        <button class="toc-close" id="toc-close" type="button" aria-label="Close contents">&times;</button>
+      </div>
+      <nav aria-label="Guide chapters">
+        <a href="#start"><span class="toc-num">01</span> Start</a>
+        <a href="#setup"><span class="toc-num">02</span> Setup</a>
+        <a href="#models"><span class="toc-num">03</span> Models</a>
+        <a href="#clients"><span class="toc-num">04</span> Local endpoint</a>
+        <a href="#troubleshooting"><span class="toc-num">05</span> Fixes</a>
+        <a href="#advanced"><span class="toc-num">06</span> When to graduate</a>
+        <a href="#glossary"><span class="toc-num">07</span> Glossary</a>
+        <a href="#sources"><span class="toc-num">08</span> Sources</a>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    const tiers = {
+      "8": {
+        title: "8GB: LiquidAI LFM2.5-8B-A1B",
+        copy: "The easiest 8GB start is a small official GGUF. It leaves room for the runtime, KV cache, and mistakes.",
+        quant: "Quant: Q4_K_M",
+        context: "Start context: 4096",
+        status: "Beginner-stable",
+        model: "LFM2.5-8B-A1B-Q4_K_M.gguf",
+        ctx: "4096"
+      },
+      "12": {
+        title: "12GB: Gemma 4-12B QAT",
+        copy: "A stronger source-backed pick that still fits comfortably if you keep the first context modest.",
+        quant: "Quant: Q4_0 or Q4_K_M",
+        context: "Start context: 8192",
+        status: "Beginner-stable",
+        model: "gemma-4-12B-it-qat-q4_0.gguf",
+        ctx: "8192"
+      },
+      "16": {
+        title: "16GB: Qwen3.6-27B at Q3",
+        copy: "This is where stronger local agents become realistic. Start non-MTP and smaller quant before upgrading.",
+        quant: "Quant: Q3_K_M or UD-Q3_K_XL",
+        context: "Start context: 8192",
+        status: "Stable path, advanced model",
+        model: "Qwen3.6-27B-Q3_K_M.gguf",
+        ctx: "8192"
+      },
+      "24": {
+        title: "24GB: Gemma 4-31B QAT",
+        copy: "A source-backed high-VRAM default. Good for users who want a bigger model without starting from community experiments.",
+        quant: "Quant: Q4_0",
+        context: "Start context: 8192",
+        status: "Beginner-stable for high VRAM",
+        model: "gemma-4-31B-it-qat-q4_0.gguf",
+        ctx: "8192"
+      },
+      "32": {
+        title: "32GB+: Qwen3.6-27B at Q8",
+        copy: "Use the extra memory for higher quantization and larger context after the server is already working.",
+        quant: "Quant: Q8_0",
+        context: "Start context: 16384",
+        status: "High-quality stable path",
+        model: "Qwen3.6-27B-Q8_0.gguf",
+        ctx: "16384"
+      }
+    };
+
+    const platformCopy = {
+      windows: {
+        label: "Windows PowerShell",
+        detected: "Showing Windows commands. Switch to Mac if that is the machine you are setting up.",
+        install: "On Windows, start with `winget install llama.cpp`. Manual install works too, but beginners often download the wrong zip.",
+        pathTitle: "2. Put the model in `C:\\models`.",
+        pathNote: "Short paths avoid quoting problems. Rename the file to something simple after download.",
+        setupNote: "Windows-first, because that is where the most beginner friction lives. Mac notes are one switch away.",
+        installStep: "Run `winget install llama.cpp`. If you download manually, NVIDIA users want the Windows CUDA zip plus the matching CUDA runtime DLL zip from the same release.",
+        shellCheck: "Run from PowerShell, not by double-clicking the exe.",
+        deviceCheck: "Use `.\\llama-server.exe --list-devices` to verify your GPU is visible.",
+        client: "set OPENAI_API_KEY=sk-no-key-required\nset OPENAI_BASE_URL=http://localhost:8080/v1",
+        command(tier) {
+          return `.\\llama-server.exe \`
+  -m C:\\models\\${tier.model} \`
+  --ctx-size ${tier.ctx} \`
+  -ngl auto \`
+  --flash-attn auto \`
+  --cache-type-k q8_0 \`
+  --cache-type-v q8_0 \`
+  --jinja \`
+  --port 8080`;
+        }
+      },
+      mac: {
+        label: "macOS Terminal",
+        detected: "Showing Mac commands. Switch to Windows PC if this phone or Mac is only your browsing device.",
+        install: "On Mac, start with `brew install llama.cpp`. Apple silicon uses Metal through the packaged build, so avoid random zip downloads first.",
+        pathTitle: "2. Put the model in `~/Models`.",
+        pathNote: "A short home-folder path keeps Terminal commands readable. Rename the downloaded GGUF to match the command.",
+        setupNote: "Mac-first for this view. The same beginner rule applies: one GGUF, modest context, one working local endpoint.",
+        installStep: "Run `brew install llama.cpp`. On Apple silicon, start with the packaged Metal build before compiling custom flags.",
+        shellCheck: "Run from Terminal so errors stay visible.",
+        deviceCheck: "Use `llama-server --list-devices` to verify Metal/GPU support is visible.",
+        client: "export OPENAI_API_KEY=sk-no-key-required\nexport OPENAI_BASE_URL=http://localhost:8080/v1",
+        command(tier) {
+          return `llama-server \\
+  -m ~/Models/${tier.model} \\
+  --ctx-size ${tier.ctx} \\
+  -ngl 99 \\
+  --flash-attn auto \\
+  --cache-type-k q8_0 \\
+  --cache-type-v q8_0 \\
+  --jinja \\
+  --port 8080`;
+        }
+      }
+    };
+
+    function inlineCode(text) {
+      const fragment = document.createDocumentFragment();
+      text.split(/(`[^`]+`)/g).forEach((part) => {
+        if (!part) return;
+        if (part.startsWith("`") && part.endsWith("`")) {
+          const code = document.createElement("code");
+          code.textContent = part.slice(1, -1);
+          fragment.appendChild(code);
+        } else {
+          fragment.appendChild(document.createTextNode(part));
+        }
+      });
+      return fragment;
+    }
+
+    function setInlineText(id, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = "";
+      el.appendChild(inlineCode(text));
+    }
+
+    const OS_STORAGE_KEY = "llm-guide-os";
+
+    function detectPlatform() {
+      const data = navigator.userAgentData;
+      if (data && data.platform) {
+        const p = data.platform.toLowerCase();
+        if (p.includes("win")) return "windows";
+        if (p.includes("mac") || p.includes("ios")) return "mac";
+      }
+      const ua = (navigator.userAgent || "") + " " + (navigator.platform || "");
+      if (/Windows|Win32|Win64/i.test(ua)) return "windows";
+      if (/Macintosh|Mac OS X|iPhone|iPad|iPod/i.test(ua)) return "mac";
+      return "windows";
+    }
+
+    function savedPlatform() {
+      try {
+        const v = localStorage.getItem(OS_STORAGE_KEY);
+        if (v === "windows" || v === "mac") return v;
+      } catch (e) {}
+      return null;
+    }
+
+    function persistPlatform(platform) {
+      try { localStorage.setItem(OS_STORAGE_KEY, platform); } catch (e) {}
+    }
+
+    let currentPlatform = savedPlatform() || detectPlatform();
+    let currentTier = tiers["8"];
+
+    function commandFor(tier) {
+      return platformCopy[currentPlatform].command(tier);
+    }
+
+    function applyPlatform(platform) {
+      currentPlatform = platformCopy[platform] ? platform : "windows";
+      document.querySelectorAll("[data-platform-choice]").forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.platformChoice === currentPlatform ? "true" : "false");
+      });
+      document.getElementById("platform-help").textContent = platformCopy[currentPlatform].detected;
+      document.getElementById("command-label").textContent = platformCopy[currentPlatform].label;
+      document.getElementById("client-command").textContent = platformCopy[currentPlatform].client;
+      document.getElementById("main-command").textContent = commandFor(currentTier);
+      setInlineText("install-note", platformCopy[currentPlatform].install);
+      setInlineText("model-path-title", platformCopy[currentPlatform].pathTitle);
+      setInlineText("model-path-note", platformCopy[currentPlatform].pathNote);
+      setInlineText("setup-platform-note", platformCopy[currentPlatform].setupNote);
+      setInlineText("install-step", platformCopy[currentPlatform].installStep);
+      setInlineText("shell-check", platformCopy[currentPlatform].shellCheck);
+      setInlineText("device-check", platformCopy[currentPlatform].deviceCheck);
+    }
+
+    document.querySelectorAll("[data-platform-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyPlatform(button.dataset.platformChoice);
+        persistPlatform(currentPlatform);
+      });
+    });
+
+    document.querySelectorAll(".segmented button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".segmented button").forEach((b) => b.setAttribute("aria-selected", "false"));
+        button.setAttribute("aria-selected", "true");
+        const tier = tiers[button.dataset.tier];
+        currentTier = tier;
+        document.getElementById("choice-title").textContent = tier.title;
+        document.getElementById("choice-copy").textContent = tier.copy;
+        document.getElementById("choice-quant").textContent = tier.quant;
+        document.getElementById("choice-context").textContent = tier.context;
+        document.getElementById("choice-status").textContent = tier.status;
+        document.getElementById("main-command").textContent = commandFor(tier);
+      });
+    });
+
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const copied = document.execCommand("copy");
+      textarea.remove();
+      return copied;
+    }
+
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.querySelector(button.dataset.copy);
+        const text = target ? target.textContent : "";
+        try {
+          const copied = await copyText(text);
+          const original = button.textContent;
+          button.textContent = copied ? "Copied" : "Select text";
+          setTimeout(() => { button.textContent = original; }, 1400);
+        } catch (error) {
+          button.textContent = "Select text";
+        }
+      });
+    });
+
+    // Contents overlay: orientation without a sticky bar
+    const overlay = document.getElementById("toc-overlay");
+    const fab = document.getElementById("toc-fab");
+    const closeBtn = document.getElementById("toc-close");
+
+    function openToc() {
+      fab.classList.add("is-visible");
+      overlay.classList.add("open");
+      fab.setAttribute("aria-expanded", "true");
+    }
+    function closeToc() {
+      overlay.classList.remove("open");
+      fab.setAttribute("aria-expanded", "false");
+    }
+    fab.addEventListener("click", () => {
+      overlay.classList.contains("open") ? closeToc() : openToc();
+    });
+    closeBtn.addEventListener("click", closeToc);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeToc(); });
+    overlay.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeToc));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeToc(); });
+
+    // Scrollspy: keep header, contents list, and the floating label in sync
+    const sections = Array.from(document.querySelectorAll("main section[id]"));
+    const tocLinks = Array.from(overlay.querySelectorAll("a"));
+    const navLinks = Array.from(document.querySelectorAll(".navlinks a, .chapter-rail a"));
+    const current = document.getElementById("toc-current");
+    const labelFor = {};
+    tocLinks.forEach((a) => { labelFor[a.getAttribute("href").slice(1)] = a.textContent.replace(/^\d+\s*/, "").trim(); });
+
+    function setCurrent(id) {
+      tocLinks.forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === "#" + id ? "true" : "false"));
+      navLinks.forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === "#" + id ? "true" : "false"));
+      if (labelFor[id]) current.textContent = labelFor[id];
+    }
+
+    let ticking = false;
+    function updateSpy() {
+      ticking = false;
+      const probe = window.scrollY + Math.min(420, window.innerHeight * 0.45);
+      let activeId = sections[0] ? sections[0].id : null;
+      for (const s of sections) {
+        if (s.offsetTop <= probe) activeId = s.id; else break;
+      }
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) {
+        activeId = sections[sections.length - 1].id;
+      }
+      if (activeId) setCurrent(activeId);
+      const revealPoint = Math.min(360, window.innerHeight * 0.35);
+      fab.classList.toggle("is-visible", window.scrollY > revealPoint || overlay.classList.contains("open"));
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(updateSpy); }
+    }, { passive: true });
+    window.addEventListener("resize", updateSpy, { passive: true });
+    applyPlatform(currentPlatform);
+    updateSpy();
+  </script>
+</body>
+</html>

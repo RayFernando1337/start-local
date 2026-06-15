@@ -1,0 +1,25 @@
+{
+  "name": "start-local",
+  "version": "1.0.0",
+  "description": "A beginner-first static guide for running local LLMs with llama.cpp on consumer hardware.",
+  "private": false,
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "python3 -m http.server 3000",
+    "test": "playwright test tests/smoke.spec.js"
+  },
+  "keywords": [
+    "llama.cpp",
+    "local-llm",
+    "gguf",
+    "static-site"
+  ],
+  "author": "Ray Fernando",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
+  }
+}
